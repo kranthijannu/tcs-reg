@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration & Payment</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        function submitForm(event) {
+            event.preventDefault();
+            
+            // User details
+            let name = document.getElementById("name").value;
+            let email = document.getElementById("email").value;
+
+            // Google Form Pre-filled URL
+            let googleFormURL = "https://docs.google.com/forms/d/e/1FAIpQLSc1wMvMUeFEoabpalrTgshbwcagdF_HmF3KLNJhcUCMsLvlXw/viewform?usp=header";
+            let prefilledURL = `${googleFormURL}?entry.1126680942=${encodeURIComponent(name)}&entry.1197843328=${encodeURIComponent(email)}`;
+
+            console.log("Prefilled Google Form URL:", prefilledURL); // Debugging step
+
+            // Initiate Razorpay Payment
+            var options = {
+                key: "rzp_test_9TwZt9Ncthd9lo", 
+                amount: 2900, // Amount in paise (₹500)
+                currency: "INR",
+                name: "Your Company Name",
+                description: "Course Registration",
+                handler: function(response) {
+                    let paymentId = response.razorpay_payment_id;
+                    console.log("Payment Successful! ID:", paymentId);
+                    updateGoogleForm(prefilledURL, paymentId, email, name); // Pass name properly
+                },
+                prefill: {
+                    name: name,
+                    email: email
+                },
+                theme: {
+                    color: "#3399cc"
+                }
+            };
+            var rzp = new Razorpay(options);
+            rzp.open();
+        }
+
+        function updateGoogleForm(formURL, paymentId, email, name) {
+            // Construct the final URL properly
+            let finalURL = formURL + 
+                "&entry.231696836=" + encodeURIComponent("YES") + 
+                "&entry.1719694782=" + encodeURIComponent(paymentId) + 
+                "&entry.1126680942=" + encodeURIComponent(name); // Ensure name is passed
+
+            console.log("Final Google Form URL:", finalURL);  // Debugging step
+
+            // Redirect to Google Form
+            window.location.href = finalURL;
+        }
+    </script>
+</head>
+<body>
+
+    <h2>User Registration</h2>
+    <form onsubmit="submitForm(event)">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <button type="submit">Proceed to Payment</button>
+    </form>
+
+</body>
+</html>
